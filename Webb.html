@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en-Us">
+<head>
+    <title>Reading App</title>
+    <meta charset="UTF-8">
+    <meta name="description" content="Free Web">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="setMyKeyDownListener()">
+
+  <div id="Page1">
+      <a id="settings" href="#" onclick="return show('Page2','Page1');">Settings</a>
+      <textarea id="inputBox"
+      rows="10" cols="40" placeholder="   Put the text you want to read here.
+      Space for pause and continue. 
+      Left arrow for going back, 
+      Right arrow for going forward."></textarea>
+      <button id="button" onclick="myFunction()">Start</button>
+      <div id="readingDiv"></div>
+      <div hidden id="wordsDiv" class="words"></div>
+  </div>
+    
+  <div id="Page2" style="display:none">
+
+      <div class="options">
+        <button class="oButtons" onclick="changeBackGround()">Background</button>
+        <button class="oButtons" onclick="changeColor()">Text Color</button>
+        <button class="oButtons" onclick="TextSize()">Text Size</button>
+        <button class="oButtons" onclick="speedF()">Speed</button>
+        <button class="oButtons" onclick="chunkWF()">Words</button>
+      </div>
+      <a id="goBack" href="#" onclick="return show('Page1','Page2');">Back</a>
+      <div>
+        <input hidden type="color" class="inputSettings" id="colorpicker">
+        <input hidden type="color" class="inputSettings" id="backGround">
+        <input hidden type="number" class="inputSettings" id="textSizePicker" value="50" min="1" max="100">
+        <input hidden type="number" class="inputSettings" id="speed" min="1">
+        <input hidden type="number" class="inputSettings" id="chunkW" min="1">
+      </div>
+      <div>
+        <div class="words">Example Text</div>
+      </div>
+<script>
+    var showWords = document.getElementById("wordsDiv");
+    var myInterval;
+    var arr;
+    var pauseWords = false;
+    var i = 0;
+    var chunkSize = 4;
+    var wordsPerMin = 250;
+    var timeForLoop = 60 * 1000 / (wordsPerMin / chunkSize);
+    var timeLeft;
+    document.getElementById("chunkW").value = chunkSize
+    const divTime = document.createElement("div");
+    divTime.setAttribute("id","divTime");
+    document.body.append(divTime);
+    divTime.style.display = "none";
+
+
+    function myFunction() {
+      var x = document.getElementById("inputBox").value;
+      document.getElementById("inputBox").style.display = "none"
+      document.getElementById("button").style.display = "none"
+      document.getElementById("settings").style.display = "none"
+      var elem = document.documentElement;
+      elem.requestFullscreen();
+      arr = x.replace(/[\n]/gm, ' ');
+      arr = arr.split(" ");
+      showWords.style.display = "block";
+      sliceIntoChunks();
+    }
+
+    function sliceIntoChunks() {
+      myInterval = setInterval(timeWords, timeForLoop);
+      }
+    function timeWords (){
+      if (i < arr.length) {
+        let chunk = arr.slice(i, i + chunkSize);
+        chunk = chunk.join("  ");
+        showWords.textContent = chunk;
+        i += chunkSize;
+    }}
+
+
+    function setMyKeyDownListener() {
+      window.addEventListener("input",(event) => inputButtons());
+      window.addEventListener("keydown",(event) => KeysFunction(event.key));
+    }
+
+
+    function inputButtons(){
+      if (document.getElementById("Page2").style.display === "none") {return;}
+
+      else if (getComputedStyle(colorPicker).display !== 'none'){
+        let colorV = colorPicker.value;
+        if(defaultVal != colorV){
+          for(let v of classWords){
+            v.style.color= colorV;
+        }
+      }}
+
+      else if (getComputedStyle(backGround).display !== 'none'){
+        let backV = backGround.value;
+        if(defaultVal != backV){
+            document.body.style = "background-color:" + backV;
+        }}
+
+      else if (getComputedStyle(textSizePicker).display !== 'none'){
+        let sizeV = textSizePicker.value;
+        if (defaultVal != sizeV){
+          for(let v of classWords){
+            v.style.fontSize = sizeV+"px";
+          }
+        }
+      }
+
+      else if (getComputedStyle(speed).display !== 'none'){
+        let speedV = speed.value;
+        if (defaultVal != speedV){
+          wordsPerMin = Number(speedV);
+        }
+      }
+
+      else if (getComputedStyle(chunkW).display !== 'none'){
+        let chunkV = chunkW.value;
+        if (defaultVal != chunkW){
+          chunkSize = Number(chunkV);
+        }
+      }}
+
+    function KeysFunction (the_Key) {
+      if (document.getElementById("Page1").style.display != "none" &&
+      document.getElementById("button").style.display == "none") {
+
+      switch (the_Key) {
+        case "ArrowLeft":
+        if (i - chunkSize >= 0) {
+          i -= chunkSize;
+          let chunk = arr.slice(i, i + chunkSize);
+          chunk = chunk.join("  ");
+          showWords.textContent = chunk;
+        }
+          break
+        case "ArrowRight":
+        if (i + chunkSize <= arr.length){
+          i += chunkSize;
+          chunk = arr.slice(i, i + chunkSize);
+          chunk = chunk.join("  ");
+          showWords.textContent = chunk;
+        }
+          break
+        case "ArrowDown":
+          if (wordsPerMin - 1 > 0){
+            clearInterval(myInterval);
+            wordsPerMin -= 1;
+            timeForLoop = 60 * 1000 / (wordsPerMin / chunkSize);
+            myInterval = setInterval(timeWords, timeForLoop);
+          }
+          break
+
+        case "ArrowUp":
+            clearInterval(myInterval);
+            wordsPerMin += 1;
+            timeForLoop = 60 * 1000 / (wordsPerMin / chunkSize);
+            myInterval = setInterval(timeWords, timeForLoop);
+          break
+
+        case "Control":
+          if (document.getElementById("settings").style.display === "none"){
+            document.getElementById("settings").style.display = "block"; }
+          else{
+            document.getElementById("settings").style.display = "none"
+          }
+          break
+
+        case "Alt":
+          if (divTime.style.display == "none"){
+          divTime.style.display = "inline-block"
+          let c = ((arr.length - i)/wordsPerMin).toFixed(2) / 60;
+          let f = parseInt((c - parseInt(c)) * 60);
+          divTime.textContent = parseInt(c)+"Hour  " + f +"Min";
+          }
+          else{
+            divTime.style.display = "none";
+          }
+        break
+
+        case " ":
+          pauseWords = !pauseWords;
+          if (pauseWords==true){
+            clearInterval(myInterval)
+          }else{
+            myInterval = setInterval(timeWords, timeForLoop);
+          }
+        }}}
+
+
+        var defaultVal;
+        var classWords = document.getElementsByClassName('words');
+        var colorPicker = document.getElementById('colorpicker');
+        var backGround = document.getElementById('backGround');
+        var textSizePicker = document.getElementById('textSizePicker');
+        var speed = document.getElementById('speed');
+        speed.value = wordsPerMin;
+        var chunkW = document.getElementById('chunkW');
+        var classSettings = document.getElementsByClassName('inputSettings');
+
+        function changeColor(){
+          for(let v of classSettings){
+            v.style.display = 'none';
+          }
+          colorPicker.style.display = 'block';
+          defaultVal = colorPicker.value;
+        }
+
+        function changeBackGround(){
+          for(let v of classSettings){
+            v.style.display = 'none';
+          }
+          backGround.style.display = 'block';
+          defaultVal = backGround.value;
+        }
+
+        function TextSize(){
+          for(let v of classSettings){
+            v.style.display = 'none';
+          }
+          textSizePicker.style.display = 'block';
+          defaultVal = textSizePicker.value;
+        }
+
+        function speedF(){
+          for(let v of classSettings){
+            v.style.display = 'none';
+          }
+          speed.style.display ="block";
+          defaultVal = speed.value;
+        }
+
+        function chunkWF(){
+          for(let v of classSettings){
+            v.style.display = 'none';
+          }
+          chunkW.style.display ="block";
+          defaultVal = chunkW.value;
+        }
+
+      </script>
+  </div>
+
+
+<script>
+    function show(shown, hidden) {
+      document.getElementById(shown).style.display='block';
+      document.getElementById(hidden).style.display='none';
+      return false;
+    }
+</script>
+</body>
+</html>
